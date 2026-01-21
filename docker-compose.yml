@@ -1,0 +1,40 @@
+services:
+    postgres:
+        image: docker.io/postgres:18
+        container_name: "${CONTAINER_NAME}-postgres"
+        restart: always
+        volumes:
+            - ${WORKING_DIR}/postgres/data:/var/lib/postgresql/data
+            - ${WORKING_DIR}/postgres/init:/docker-entrypoint-initdb.d
+            - ./scripts:/scripts
+
+        environment:
+            - POSTGRES_HOST_AUTH_METHOD=trust
+            - POSTGRES_PASSWORD=${ADMIN_PASSWORD}
+            - POSTGRES_USER=postgres
+            - POSTGRES_DB=tutor_app
+            - PGDATA=/var/lib/postgresql/data
+
+        ports:
+            - "${DATABASE_PORT_ONE}:5432"
+
+    streamlit:
+        build:
+            context: ./streamlit_app
+            dockerfile: Dockerfile
+        container_name: "${CONTAINER_NAME}-streamlit"
+        environment:
+            - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+            - POSTGRES_PASSWORD=${ADMIN_PASSWORD}
+            - POSTGRES_USER=postgres
+            - POSTGRES_DB=tutor_app
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+            - OLLAMA_EMBEDDING_MODEL=${OLLAMA_EMBEDDING_MODEL}
+            - OLLAMA_CHAT_MODEL=${OLLAMA_CHAT_MODEL}
+            - SEARXNG_BASE_URL=${SEARXNG_BASE_URL}
+        ports:
+          - "${APPLICATION_PORT}:8501"
+        depends_on:
+            - postgres
