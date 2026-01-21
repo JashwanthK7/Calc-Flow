@@ -6,7 +6,6 @@ services:
         volumes:
             - ${WORKING_DIR}/postgres/data:/var/lib/postgresql/data
             - ${WORKING_DIR}/postgres/init:/docker-entrypoint-initdb.d
-            - ./scripts:/scripts
 
         environment:
             - POSTGRES_HOST_AUTH_METHOD=trust
@@ -18,22 +17,48 @@ services:
         ports:
             - "${DATABASE_PORT_ONE}:5432"
 
+    qdrant:
+        image: docker.io/qdrant/qdrant:latest
+        container_name: "${CONTAINER_NAME}-qdrant"
+        restart: always
+        volumes:
+            - ${WORKING_DIR}/qdrant/storage:/qdrant/storage
+        environment:
+            - QDRANT__SERVICE__API_KEY=${ADMIN_PASSWORD}
+        ports:
+            - "${DATABASE_PORT_TWO}:6333"
+
+    neo4j:
+        image: docker.io/library/neo4j:latest
+        container_name: "${CONTAINER_NAME}-neo4j"
+        restart: always
+        volumes:
+            - ${WORKING_DIR}/neo4j/data:/data
+            - ${WORKING_DIR}/neo4j/logs:/logs
+        environment:
+            - NEO4J_AUTH=neo4j/${ADMIN_PASSWORD}
+        ports:
+            - "${DATABASE_PORT_THREE}:7687"
+         
     streamlit:
         build:
-            context: ./streamlit_app
-            dockerfile: Dockerfile
+            context: . 
+            dockerfile: Dockerfile 
         container_name: "${CONTAINER_NAME}-streamlit"
         environment:
             - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+            - SERVICE_PASSWORD=${SERVICE_PASSWORD} 
+
+            # Database Config
             - POSTGRES_PASSWORD=${ADMIN_PASSWORD}
             - POSTGRES_USER=postgres
             - POSTGRES_DB=tutor_app
             - POSTGRES_HOST=postgres
             - POSTGRES_PORT=5432
+            - DATABASE_PORT_ONE=host=postgres port=5432 user=postgres password=${ADMIN_PASSWORD} dbname=tutor_app
             - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-            - OLLAMA_EMBEDDING_MODEL=${OLLAMA_EMBEDDING_MODEL}
-            - OLLAMA_CHAT_MODEL=${OLLAMA_CHAT_MODEL}
-            - SEARXNG_BASE_URL=${SEARXNG_BASE_URL}
+            - HOST=${HOST}
+            
         ports:
           - "${APPLICATION_PORT}:8501"
         depends_on:
