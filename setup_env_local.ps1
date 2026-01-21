@@ -1,0 +1,6 @@
+$env:APPLICATION_PORT="8501"
+$env:OLLAMA_BASE_URL="http://localhost:11434"
+$env:HOST="localhost"
+$env:SERVICE_PASSWORD="password"
+$env:DATABASE_PORT_ONE="host=localhost port=5432 user=postgres password=password dbname=tutor_app"
+Write-Host "Local Environment Configured!"
