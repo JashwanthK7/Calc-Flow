@@ -1,0 +1,9 @@
+streamlit
+requests
+python-dotenv
+openai
+numpy
+sympy
+matplotlib
+psycopg2-binary
+sqlalchemy
